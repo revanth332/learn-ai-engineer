@@ -63,5 +63,53 @@ def test_no_valid_pairs_to_merge():
     tokenizer = BPETokenizer()
     # A single byte or empty string cannot form pairs
     tokenizer.train(text="a", vocab_size=260)
-    # Merges should stop gracefully without throwing index error
+    # Merges should stop gracefully without throwing an index error
     assert len(tokenizer.vocab) == 256
+
+
+def test_training_learns_deterministic_merge_sequence():
+    tokenizer = BPETokenizer()
+
+    tokenizer.train(text="aaaa", vocab_size=258)
+
+    assert tokenizer.merges == {(ord("a"), ord("a")): 256, (256, 256): 257}
+    assert tokenizer.encode("aaaa") == [257]
+
+
+def test_retraining_resets_learned_state():
+    tokenizer = BPETokenizer()
+    tokenizer.train(text="aaaa", vocab_size=257)
+
+    tokenizer.train(text="bbbb", vocab_size=257)
+
+    assert tokenizer.merges == {(ord("b"), ord("b")): 256}
+    assert tokenizer.vocab[256] == b"bb"
+    assert tokenizer.decode(tokenizer.encode("bbbb")) == "bbbb"
+
+
+def test_invalid_retraining_request_preserves_existing_model():
+    tokenizer = BPETokenizer()
+    tokenizer.train(text="aaaa", vocab_size=257)
+    learned_vocab = tokenizer.vocab.copy()
+    learned_merges = tokenizer.merges.copy()
+
+    with pytest.raises(ValueError):
+        tokenizer.train(text="bbbb", vocab_size=255)
+
+    assert tokenizer.vocab == learned_vocab
+    assert tokenizer.merges == learned_merges
+
+
+def test_unicode_roundtrip():
+    tokenizer = BPETokenizer()
+    text = "Hello, 世界 👋 café"
+    tokenizer.train(text=text, vocab_size=270)
+
+    assert tokenizer.decode(tokenizer.encode(text)) == text
+
+
+def test_decode_rejects_unknown_token_id():
+    tokenizer = BPETokenizer()
+
+    with pytest.raises(KeyError):
+        tokenizer.decode([256])

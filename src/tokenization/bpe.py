@@ -2,7 +2,6 @@ class BPETokenizer:
     """Byte-Pair Encoding (BPE) Tokenizer operating on raw UTF-8 bytes."""
 
     def __init__(self) -> None:
-        # Base vocabulary: mapping from token id (0-255) to single byte
         self.vocab: dict[int, bytes] = {i: bytes([i]) for i in range(256)}
         # Merges: mapping from (token_id1, token_id2) tuple to merged token_id
         self.merges: dict[tuple[int, int], int] = {}
@@ -15,8 +14,14 @@ class BPETokenizer:
             text: Raw input training corpus.
             vocab_size: Target vocabulary size (must be >= 256).
         """
+
         if vocab_size < 256:
             raise ValueError("Invalid Vocabulary Size")
+
+        self.vocab: dict[int, bytes] = {i: bytes([i]) for i in range(256)}
+        # Merges: mapping from (token_id1, token_id2) tuple to merged token_id
+        self.merges: dict[tuple[int, int], int] = {}
+        
         n_merges = vocab_size - 256
         token_list = list(text.encode("utf-8"))
         next_token_id = 256
