@@ -1,134 +1,317 @@
-"""Generates a standalone, interactive visual progress tracker dashboard.html."""
+"""Generates a standalone, Coursera-grade visual curriculum and test verification dashboard.html."""
 
 import json
 import os
 import subprocess
-import time
 from datetime import datetime
 
 
-def get_test_stats() -> dict:
-    """Run pytest with json-report or parse terminal output to get test metrics."""
-    try:
-        result = subprocess.run(
-            ["python", "-m", "uv", "run", "python", "-m", "pytest", "--tb=no", "-v"],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        output = result.stdout + "\n" + result.stderr
-    except Exception as e:
-        output = str(e)
+def get_curriculum_syllabus(live_modules: dict) -> list[dict]:
+    """Returns the comprehensive 3-Tier Coursera-style curriculum including completed, active, and upcoming concepts."""
+    return [
+        {
+            "tier": 1,
+            "title": "Course 1: AI Foundations & Deterministic Engineering",
+            "subtitle": "Token mechanics, deterministic schema enforcement, resilience patterns, and foundational retrieval.",
+            "difficulty": "Foundations",
+            "badge": "Tier 1",
+            "modules": [
+                {
+                    "title": "Byte-Pair Encoding (BPE) from Scratch",
+                    "status": "completed",
+                    "type": "Core Algorithm",
+                    "summary": "Byte-level BPE tokenizer operating over raw 0-255 byte vocabulary with greedy pair merges.",
+                    "topics": ["UTF-8 byte decoding", "Pair frequency histograms", "Merge order preservation", "O(N) token reconstruction"],
+                    "test_file": "tests/test_bpe_tokenizer.py",
+                },
+                {
+                    "title": "Context Framing & Dynamic Budgeting",
+                    "status": "completed",
+                    "type": "Production Pattern",
+                    "summary": "Per-message ChatML framing overhead (+4 tokens) and chronological context budget trimming preserving system instructions.",
+                    "topics": ["ChatML delimiter overhead", "System prompt pinning", "Greedy history eviction", "Token overflow prevention"],
+                    "test_file": "tests/test_context.py",
+                },
+                {
+                    "title": "Token Cost & Financial Modeling",
+                    "status": "completed",
+                    "type": "Cost Governance",
+                    "summary": "Per-million token pricing matrix across model tiers, input caching discounts, and billing projection.",
+                    "topics": ["Immutable pricing dataclasses", "Sub-penny precision", "Input vs output token scaling"],
+                    "test_file": "tests/test_cost.py",
+                },
+                {
+                    "title": "Server-Sent Events (SSE) Streaming Generator",
+                    "status": "completed",
+                    "type": "Streaming Systems",
+                    "summary": "Generator-based chunk reassembler handling cross-packet splits, metadata filtering, and [DONE] termination.",
+                    "topics": ["Cross-packet line buffers", "data: JSON payload extraction", "Keep-alive ping filtering", "Generator memory safety"],
+                    "test_file": "tests/test_streaming.py",
+                },
+                {
+                    "title": "Structured Outputs & JSON Auto-Repair",
+                    "status": "completed",
+                    "type": "Deterministic Control",
+                    "summary": "Pydantic schema enforcement combined with non-hallucinating regex repair for markdown fences and trailing commas.",
+                    "topics": ["Pydantic BaseModel validation", "Regex markdown fence strip", "Trailing comma cleanup", "Syntax error recovery"],
+                    "test_file": "tests/test_structured_output.py",
+                },
+                {
+                    "title": "Resilience: Token Bucket & Full Jitter Backoff",
+                    "status": "completed",
+                    "type": "High Availability",
+                    "summary": "Monotonic token-bucket rate limiter and exponential backoff with full randomized jitter.",
+                    "topics": ["Monotonic clock math", "Burst capacity vs refill rate", "Full Jitter formula", "Thundering herd prevention"],
+                    "test_file": "tests/test_resilience.py",
+                },
+                {
+                    "title": "Vector Geometry & First-Principles Vector Store",
+                    "status": "completed",
+                    "type": "Retrieval Foundation",
+                    "summary": "Dot product, L2 unit norm, Euclidean distance, and exact top-k nearest-neighbor cosine vector index.",
+                    "topics": ["L2 normalization math", "Dot-product optimization", "Cosine similarity metric", "Top-K min-heap search"],
+                    "test_file": "tests/test_vector_store.py",
+                },
+                {
+                    "title": "Sliding-Window Text Chunking",
+                    "status": "completed",
+                    "type": "Document Ingestion",
+                    "summary": "Sliding window text segmentation with configurable overlap to preserve context across boundaries.",
+                    "topics": ["Window stride math", "Overlap context retention", "Boundary preservation"],
+                    "test_file": "tests/test_chunking.py",
+                },
+            ],
+        },
+        {
+            "tier": 2,
+            "title": "Course 2: Intermediate Systems & Advanced RAG",
+            "subtitle": "Multi-stage retrieval, cross-encoders, query transformation, agent tool engines, and evaluation guardrails.",
+            "difficulty": "Intermediate",
+            "badge": "Tier 2",
+            "modules": [
+                {
+                    "title": "Okapi BM25 Sparse Keyword Retrieval",
+                    "status": "completed",
+                    "type": "Information Retrieval",
+                    "summary": "Robertson-Spärck Jones IDF with Robertson term saturation (k1=1.5) and document length normalization (b=0.75).",
+                    "topics": ["RSJ IDF with floor smoothing", "Term frequency saturation", "Document length penalty", "Exact keyword recall"],
+                    "test_file": "tests/test_bm25.py",
+                },
+                {
+                    "title": "Hybrid Search with Reciprocal Rank Fusion (RRF)",
+                    "status": "completed",
+                    "type": "Hybrid Retrieval",
+                    "summary": "Dual-engine retrieval combining Dense Vector embeddings and BM25 sparse rankings using rank-inversion fusion.",
+                    "topics": ["Reciprocal Rank Fusion: 1 / (k + rank)", "Score scale invariance", "Sparse keyword + dense semantic synergy"],
+                    "test_file": "tests/test_hybrid.py",
+                },
+                {
+                    "title": "Cross-Encoder Re-Ranking (Stage-2 Precision)",
+                    "status": "completed",
+                    "type": "Re-ranking Engine",
+                    "summary": "Multi-signal scoring engine combining token coverage (50%), bigram N-gram overlap (30%), and token proximity span (20%).",
+                    "topics": ["Lexical coverage ratio", "Consecutive bigram preservation", "Token proximity span density", "Noise elimination"],
+                    "test_file": "tests/test_reranking.py",
+                },
+                {
+                    "title": "Query Transformation, Expansion & HyDE",
+                    "status": "in_progress",
+                    "type": "Query Engineering",
+                    "summary": "Vocabulary mismatch resolution: domain synonym expansion, multi-query decomposition, and HyDE prompt synthesis.",
+                    "topics": ["Vocabulary mismatch problem", "Conjunction query decomposition", "HyDE hypothetical passage synthesis", "Query set fusion & deduplication"],
+                    "test_file": "tests/test_query_transform.py",
+                },
+                {
+                    "title": "Dynamic Tool Calling & Execution Engine",
+                    "status": "upcoming",
+                    "type": "Autonomous Agent",
+                    "summary": "Dynamic tool registry, schema auto-generation, argument sandboxing, and automated error-correction loops.",
+                    "topics": ["Tool registry & typing introspection", "OpenAI/Anthropic tool JSON schemas", "Sandboxed execution & exception capture", "Self-correcting feedback prompts"],
+                    "test_file": "Pending",
+                },
+                {
+                    "title": "Stateful Conversation & Memory Architecture",
+                    "status": "upcoming",
+                    "type": "Memory Systems",
+                    "summary": "Production conversation memory: sliding token windows, entity memory extraction graphs, and recursive rolling summaries.",
+                    "topics": ["Sliding token window buffer", "Entity relationship extraction", "Knowledge graph memory edges", "Recursive LLM rolling summarizer"],
+                    "test_file": "Pending",
+                },
+                {
+                    "title": "LLM Evaluation Guardrails & The RAG Triad",
+                    "status": "upcoming",
+                    "type": "Evals & Governance",
+                    "summary": "Comprehensive evaluation harness implementing the RAG Triad: Context Relevance, Groundedness, and Answer Relevance.",
+                    "topics": ["The RAG Triad metrics", "Hallucination detection", "Deterministic regex/semantic tests vs LLM-as-a-judge", "Automated eval benchmark reporting"],
+                    "test_file": "Pending",
+                },
+            ],
+        },
+        {
+            "tier": 3,
+            "title": "Course 3: Advanced Architectures, Autonomy & Model Serving",
+            "subtitle": "ReAct agent loops, multi-agent blackboards, semantic vector caching, local vLLM serving, and LoRA fine-tuning.",
+            "difficulty": "Advanced",
+            "badge": "Tier 3",
+            "modules": [
+                {
+                    "title": "Agentic Loops from First Principles (ReAct Pattern)",
+                    "status": "upcoming",
+                    "type": "Autonomous Systems",
+                    "summary": "Explicit ReAct (Reasoning + Acting) state machine with dynamic replanning, cyclic execution, and deadlock detection.",
+                    "topics": ["Explicit ReAct state machine", "Observation-Thought-Action loop", "Cycle & infinite loop breaker", "Dynamic task replanning"],
+                    "test_file": "Pending",
+                },
+                {
+                    "title": "Multi-Agent Coordination & Shared Blackboard",
+                    "status": "upcoming",
+                    "type": "Distributed Agents",
+                    "summary": "Supervisor-worker architecture with centralized state blackboard, task delegation, and consensus verification.",
+                    "topics": ["Supervisor-worker topology", "Shared blackboard state store", "Conflict resolution", "Agent-to-agent message passing"],
+                    "test_file": "Pending",
+                },
+                {
+                    "title": "Semantic Caching & Latency Optimization",
+                    "status": "upcoming",
+                    "type": "Performance Engineering",
+                    "summary": "High-throughput vector similarity cache with calibrated distance thresholds, TTL, and async batching.",
+                    "topics": ["Vector similarity caching", "Cosine threshold calibration", "Cache invalidation & TTL", "Async queue batching"],
+                    "test_file": "Pending",
+                },
+                {
+                    "title": "Local Inference & Serving Mechanics",
+                    "status": "upcoming",
+                    "type": "Inference Infrastructure",
+                    "summary": "Local engine serving via vLLM / Ollama, ChatML / Llama-3 prompt formatting, KV caching dynamics, and quantization (AWQ/GGUF).",
+                    "topics": ["vLLM / Ollama integration", "ChatML & Llama-3 prompt formats", "KV cache memory sizing", "AWQ / GGUF quantization trade-offs"],
+                    "test_file": "Pending",
+                },
+                {
+                    "title": "Fine-Tuning & Model Alignment Pipelines",
+                    "status": "upcoming",
+                    "type": "Model Engineering",
+                    "summary": "End-to-end fine-tuning pipeline: synthetic dataset generation with rejection sampling, instruction formatting, and LoRA/QLoRA training.",
+                    "topics": ["Rejection sampling dataset creation", "Instruction-tuning format preparation", "LoRA / QLoRA parameter-efficient tuning", "Benchmark eval vs base weights"],
+                    "test_file": "Pending",
+                },
+            ],
+        },
+    ]
 
-    # Count passes and fails per test file
-    modules = {
-        "tests/test_bpe_tokenizer.py": {
-            "name": "Byte-Pair Encoding (BPE)",
-            "tier": 1,
-            "passed": 0,
-            "failed": 0,
-            "desc": "Byte-level BPE tokenization, vocabulary merging, and token encoding/decoding.",
-        },
-        "tests/test_context.py": {
-            "name": "Context Budget & Framing",
-            "tier": 1,
-            "passed": 0,
-            "failed": 0,
-            "desc": "Token estimation, per-message framing overhead, and chronological context budget trimming.",
-        },
-        "tests/test_cost.py": {
-            "name": "Token Cost Modeling",
-            "tier": 1,
-            "passed": 0,
-            "failed": 0,
-            "desc": "Model token-pricing and precise request/response cost calculation.",
-        },
-        "tests/test_streaming.py": {
-            "name": "SSE Streaming Generator",
-            "tier": 1,
-            "passed": 0,
-            "failed": 0,
-            "desc": "Raw Server-Sent Events chunk reassembly, metadata filtering, and stream termination.",
-        },
-        "tests/test_structured_output.py": {
-            "name": "Structured Outputs",
-            "tier": 1,
-            "passed": 0,
-            "failed": 0,
-            "desc": "Strict schema validation and deterministic Pydantic model parsing.",
-        },
-        "tests/test_json_repair.py": {
-            "name": "JSON Repair & Regex Slicing",
-            "tier": 1,
-            "passed": 0,
-            "failed": 0,
-            "desc": "Non-hallucinating JSON repair (markdown fence stripping and trailing comma removal).",
-        },
-        "tests/test_resilience.py": {
-            "name": "Rate Limiting & Backoff Jitter",
-            "tier": 1,
-            "passed": 0,
-            "failed": 0,
-            "desc": "Token Bucket rate limiter and Full Jitter Exponential Backoff.",
-        },
-        "tests/test_vector_math.py": {
-            "name": "Vector Geometry & Cosine Math",
-            "tier": 1,
-            "passed": 0,
-            "failed": 0,
-            "desc": "Dot product, L2 norm, unit normalization, Euclidean distance, and cosine similarity.",
-        },
-        "tests/test_chunking.py": {
-            "name": "Sliding-Window Text Chunking",
-            "tier": 1,
-            "passed": 0,
-            "failed": 0,
-            "desc": "Fixed-size character chunking with configurable overlap preserving semantic borders.",
-        },
-        "tests/test_vector_store.py": {
-            "name": "In-Memory Vector Store",
-            "tier": 1,
-            "passed": 0,
-            "failed": 0,
-            "desc": "Exact nearest-neighbor in-memory vector database with top-k ranking and thresholding.",
-        },
-        "tests/test_bm25.py": {
-            "name": "Okapi BM25 Keyword Search",
-            "tier": 2,
-            "passed": 0,
-            "failed": 0,
-            "desc": "Robertson-Spärck Jones IDF, term saturation (k1), and document length normalization (b).",
-        },
-        "tests/test_hybrid.py": {
-            "name": "Reciprocal Rank Fusion (Hybrid)",
-            "tier": 2,
-            "passed": 0,
-            "failed": 0,
-            "desc": "Dual-engine hybrid search fusing Dense Vectors and BM25 rankings via RRF (k=60).",
-        },
-        "tests/test_reranking.py": {
-            "name": "Cross-Encoder Re-Ranking",
-            "tier": 2,
-            "passed": 0,
-            "failed": 0,
-            "desc": "Stage-2 Cross-Encoder re-ranking with coverage, n-gram bigram matching, and proximity density.",
-        },
-        "tests/test_query_transform.py": {
-            "name": "Query Transformation & HyDE",
-            "tier": 2,
-            "passed": 0,
-            "failed": 0,
-            "desc": "Deterministic synonym expansion, multi-query decomposition, HyDE prompt templates, and query fusion.",
-        },
-    }
 
-    for line in output.splitlines():
-        for test_file in modules:
-            if test_file in line:
-                if "PASSED" in line:
-                    modules[test_file]["passed"] += 1
-                elif "FAILED" in line:
-                    modules[test_file]["failed"] += 1
+MODULE_METADATA = {
+    "tests/test_bpe_tokenizer.py": {
+        "name": "Byte-Pair Encoding (BPE)",
+        "tier": 1,
+        "desc": "Byte-level BPE tokenization, vocabulary merging, and token encoding/decoding.",
+    },
+    "tests/test_context.py": {
+        "name": "Context Budget & Framing",
+        "tier": 1,
+        "desc": "Token estimation, per-message framing overhead, and chronological context budget trimming.",
+    },
+    "tests/test_cost.py": {
+        "name": "Token Cost Modeling",
+        "tier": 1,
+        "desc": "Model token-pricing and precise request/response cost calculation.",
+    },
+    "tests/test_streaming.py": {
+        "name": "SSE Streaming Generator",
+        "tier": 1,
+        "desc": "Raw Server-Sent Events chunk reassembly, metadata filtering, and stream termination.",
+    },
+    "tests/test_structured_output.py": {
+        "name": "Structured Outputs",
+        "tier": 1,
+        "desc": "Strict schema validation and deterministic Pydantic model parsing.",
+    },
+    "tests/test_json_repair.py": {
+        "name": "JSON Repair & Regex Slicing",
+        "tier": 1,
+        "desc": "Non-hallucinating JSON repair (markdown fence stripping and trailing comma removal).",
+    },
+    "tests/test_resilience.py": {
+        "name": "Rate Limiting & Backoff Jitter",
+        "tier": 1,
+        "desc": "Token Bucket rate limiter and Full Jitter Exponential Backoff.",
+    },
+    "tests/test_vector_math.py": {
+        "name": "Vector Geometry & Cosine Math",
+        "tier": 1,
+        "desc": "Dot product, L2 norm, unit normalization, Euclidean distance, and cosine similarity.",
+    },
+    "tests/test_chunking.py": {
+        "name": "Sliding-Window Text Chunking",
+        "tier": 1,
+        "desc": "Fixed-size character chunking with configurable overlap preserving semantic borders.",
+    },
+    "tests/test_vector_store.py": {
+        "name": "In-Memory Vector Store",
+        "tier": 1,
+        "desc": "Exact nearest-neighbor in-memory vector database with top-k ranking and thresholding.",
+    },
+    "tests/test_bm25.py": {
+        "name": "Okapi BM25 Keyword Search",
+        "tier": 2,
+        "desc": "Robertson-Spärck Jones IDF, term saturation (k1), and document length normalization (b).",
+    },
+    "tests/test_hybrid.py": {
+        "name": "Reciprocal Rank Fusion (Hybrid)",
+        "tier": 2,
+        "desc": "Dual-engine hybrid search fusing Dense Vectors and BM25 rankings via RRF (k=60).",
+    },
+    "tests/test_reranking.py": {
+        "name": "Cross-Encoder Re-Ranking",
+        "tier": 2,
+        "desc": "Stage-2 Cross-Encoder re-ranking with coverage, n-gram bigram matching, and proximity density.",
+    },
+    "tests/test_query_transform.py": {
+        "name": "Query Transformation & HyDE",
+        "tier": 2,
+        "desc": "Deterministic synonym expansion, multi-query decomposition, HyDE prompt templates, and query fusion.",
+    },
+}
+
+CACHE_FILE = os.path.join(".pytest_cache", "test_results.json")
+
+
+def load_cached_test_stats() -> dict[str, str]:
+    """Load cached test execution outcomes per test nodeid."""
+    if os.path.exists(CACHE_FILE):
+        try:
+            with open(CACHE_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+
+def save_cached_test_stats(cache: dict[str, str]) -> None:
+    """Save granular test outcomes to persistent cache."""
+    os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
+    with open(CACHE_FILE, "w", encoding="utf-8") as f:
+        json.dump(cache, f, indent=2)
+
+
+def aggregate_module_stats(cache: dict[str, str]) -> dict:
+    """Aggregate per-nodeid outcomes into module-level metrics."""
+    modules = {}
+    for test_file, meta in MODULE_METADATA.items():
+        modules[test_file] = {
+            "name": meta["name"],
+            "tier": meta["tier"],
+            "passed": 0,
+            "failed": 0,
+            "desc": meta["desc"],
+        }
+
+    for nodeid, outcome in cache.items():
+        file_part = nodeid.split("::")[0].replace("\\", "/")
+        if file_part in modules:
+            if outcome == "PASSED":
+                modules[file_part]["passed"] += 1
+            elif outcome == "FAILED":
+                modules[file_part]["failed"] += 1
 
     total_passed = sum(m["passed"] for m in modules.values())
     total_failed = sum(m["failed"] for m in modules.values())
@@ -141,6 +324,47 @@ def get_test_stats() -> dict:
         "total_tests": total_tests,
         "pass_rate": round((total_passed / total_tests * 100), 1) if total_tests > 0 else 0.0,
     }
+
+
+def get_test_stats(use_cache: bool = True) -> dict:
+    """Run pytest or read cached outcomes to parse test metrics per file."""
+    if use_cache:
+        cache = load_cached_test_stats()
+        if cache:
+            return aggregate_module_stats(cache)
+
+    env = os.environ.copy()
+    env["_DASHBOARD_UPDATING"] = "1"
+
+    try:
+        result = subprocess.run(
+            ["python", "-m", "uv", "run", "python", "-m", "pytest", "--tb=no", "-v"],
+            capture_output=True,
+            text=True,
+            check=False,
+            env=env,
+        )
+        output = result.stdout + "\n" + result.stderr
+    except Exception as e:
+        output = str(e)
+
+    parsed_cache = {}
+    for line in output.splitlines():
+        line = line.strip()
+        for test_file in MODULE_METADATA:
+            if test_file in line and ("::" in line):
+                parts = line.split()
+                nodeid = parts[0]
+                if "PASSED" in line:
+                    parsed_cache[nodeid] = "PASSED"
+                elif "FAILED" in line:
+                    parsed_cache[nodeid] = "FAILED"
+
+    if parsed_cache:
+        save_cached_test_stats(parsed_cache)
+        return aggregate_module_stats(parsed_cache)
+
+    return aggregate_module_stats({})
 
 
 def get_codebase_stats() -> dict:
@@ -168,48 +392,29 @@ def get_codebase_stats() -> dict:
 
 
 def generate_html() -> None:
-    """Generate self-contained dashboard.html."""
+    """Generate self-contained Coursera-style dashboard.html."""
     stats = get_test_stats()
     code_stats = get_codebase_stats()
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Tier calculations
-    tier1_modules = [m for m in stats["modules"].values() if m["tier"] == 1]
-    tier2_modules = [m for m in stats["modules"].values() if m["tier"] == 2]
-
-    t1_passed = sum(m["passed"] for m in tier1_modules)
-    t1_total = sum(m["passed"] + m["failed"] for m in tier1_modules)
-    t1_pct = round((t1_passed / t1_total * 100), 1) if t1_total > 0 else 0.0
-
-    t2_passed = sum(m["passed"] for m in tier2_modules)
-    t2_total = sum(m["passed"] + m["failed"] for m in tier2_modules)
-    t2_pct = round((t2_passed / t2_total * 100), 1) if t2_total > 0 else 0.0
-
-    # Determine dynamic active module
-    active_module = None
-    for path, m in stats["modules"].items():
-        if m["failed"] > 0 or (m["passed"] == 0 and m["failed"] == 0):
-            active_module = m
-            break
-
-    if not active_module:
-        active_name = "All Current Modules Verified!"
-        active_tier = "Tier 2 Complete"
-        active_desc = "All unit tests across current modules are passing at 100%."
-    else:
-        active_name = active_module["name"]
-        active_tier = f"Tier {active_module['tier']}: Active Component"
-        active_desc = active_module.get("desc", "Component currently under active implementation and test verification.")
-
-    # Modules JSON for frontend rendering
+    syllabus = get_curriculum_syllabus(stats["modules"])
+    syllabus_json = json.dumps(syllabus)
     modules_json = json.dumps(stats["modules"])
+
+    # Calculate overall curriculum stats
+    all_curriculum_modules = [m for tier in syllabus for m in tier["modules"]]
+    total_curriculum_count = len(all_curriculum_modules)
+    completed_curriculum_count = len([m for m in all_curriculum_modules if m["status"] == "completed"])
+    in_progress_curriculum_count = len([m for m in all_curriculum_modules if m["status"] == "in_progress"])
+    upcoming_curriculum_count = len([m for m in all_curriculum_modules if m["status"] == "upcoming"])
+    curriculum_progress_pct = round((completed_curriculum_count / total_curriculum_count) * 100, 1)
 
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Engineering Mastery Tracker</title>
+    <title>AI Engineering Specialization | First-Principles Mastery</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
@@ -218,12 +423,11 @@ def generate_html() -> None:
             theme: {{
                 extend: {{
                     colors: {{
-                        brand: {{
-                            50: '#f0fdfa',
-                            100: '#ccfbf1',
-                            500: '#0d9488',
-                            600: '#0f766e',
-                            900: '#134e4a',
+                        coursera: {{
+                            blue: '#0056D2',
+                            darkBlue: '#00419e',
+                            lightBlue: '#ebf3ff',
+                            slate: '#1f2937',
                         }},
                     }}
                 }}
@@ -233,216 +437,276 @@ def generate_html() -> None:
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         body {{
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }}
         code, .font-mono {{
             font-family: 'JetBrains Mono', monospace;
         }}
+        .tab-btn.active {{
+            border-bottom: 2px solid #0056D2;
+            color: #0056D2;
+            font-weight: 700;
+        }}
     </style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800 p-4 md:p-8 antialiased selection:bg-teal-500/20 selection:text-teal-900">
-    <div class="max-w-7xl mx-auto space-y-8">
-
-        <!-- HEADER -->
-        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
-            <div>
+<body class="min-h-screen bg-slate-50 text-slate-800 antialiased selection:bg-blue-500/20 selection:text-blue-900">
+    <!-- COURSERA STYLE TOP NAVIGATION -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-3">
-                    <div class="p-2.5 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 shadow-sm">
-                        <i data-lucide="cpu" class="w-6 h-6"></i>
+                    <div class="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black text-xl tracking-tighter shadow-sm">
+                        C
                     </div>
                     <div>
-                        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
-                            AI Engineer Progress Radar
-                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 border border-teal-300 font-mono font-semibold">FIRST-PRINCIPLES</span>
-                        </h1>
-                        <p class="text-sm text-slate-500">Autonomous First-Principles Mastery & Test Verification System</p>
+                        <div class="text-xs uppercase font-extrabold tracking-wider text-blue-600 font-mono">Specialization</div>
+                        <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">Full-Stack AI Engineering (First-Principles)</h1>
                     </div>
                 </div>
-            </div>
-            <div class="flex items-center gap-3 text-xs font-mono text-slate-600 bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm">
-                <i data-lucide="clock" class="w-4 h-4 text-teal-600"></i>
-                <span>Last Synced: <span class="text-slate-900 font-bold">{now_str}</span></span>
-            </div>
-        </header>
 
-        <!-- ACTIVE STANDING HERO BANNER (DYNAMIC) -->
-        <section class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white via-white to-teal-50/70 border border-slate-200 p-6 md:p-8 shadow-sm">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div class="space-y-2">
-                    <div class="flex items-center gap-2">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300">
-                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                            Current In-Flight Milestone
-                        </span>
-                        <span class="text-xs font-mono text-slate-500 font-medium">{active_tier}</span>
+                <div class="flex items-center gap-4 text-xs font-mono text-slate-500">
+                    <div class="hidden md:flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                        <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-600"></i>
+                        <span>Synced: <strong class="text-slate-800">{now_str}</strong></span>
                     </div>
-                    <h2 class="text-2xl md:text-3xl font-bold text-slate-900">{active_name}</h2>
-                    <p class="text-sm text-slate-600 max-w-2xl leading-relaxed">
-                        {active_desc}
+                    <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-semibold border border-emerald-300 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span> Production Grade
+                    </span>
+                </div>
+            </div>
+
+            <!-- TAB NAVIGATION -->
+            <div class="flex gap-8 border-t border-slate-100 text-sm font-medium text-slate-600">
+                <button onclick="switchTab('curriculum')" id="tab-curriculum-btn" class="tab-btn active py-3 flex items-center gap-2 hover:text-blue-600 transition">
+                    <i data-lucide="book-open" class="w-4 h-4"></i>
+                    Curriculum & Future Concepts
+                </button>
+                <button onclick="switchTab('tests')" id="tab-tests-btn" class="tab-btn py-3 flex items-center gap-2 hover:text-blue-600 transition">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                    Live Test Verification Matrix
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono font-bold">{stats['total_passed']}/{stats['total_tests']}</span>
+                </button>
+                <button onclick="switchTab('vault')" id="tab-vault-btn" class="tab-btn py-3 flex items-center gap-2 hover:text-blue-600 transition">
+                    <i data-lucide="brain" class="w-4 h-4"></i>
+                    Concept Knowledge Vault
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- SPECIALIZATION PROGRESS HEADER HERO -->
+        <section class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+                <div class="lg:col-span-2 space-y-3">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+                        <i data-lucide="award" class="w-3.5 h-3.5"></i>
+                        Professional AI Engineering Track
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                        Deep First-Principles AI Architecture
+                    </h2>
+                    <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">
+                        A rigorous masterclass building tokenizers, stateful memory graphs, hybrid RAG retrievers, autonomous ReAct loops, and local fine-tuning pipelines entirely from mathematical and algorithmic foundations without wrappers.
                     </p>
+                    
+                    <div class="pt-2 flex flex-wrap gap-4 text-xs font-mono text-slate-600">
+                        <div class="flex items-center gap-1.5">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                            <span><strong>{completed_curriculum_count}</strong> Completed</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <i data-lucide="loader" class="w-4 h-4 text-amber-500 animate-spin"></i>
+                            <span><strong>{in_progress_curriculum_count}</strong> In Progress</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <i data-lucide="lock" class="w-4 h-4 text-slate-400"></i>
+                            <span><strong>{upcoming_curriculum_count}</strong> Upcoming</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <i data-lucide="file-code" class="w-4 h-4 text-indigo-600"></i>
+                            <span><strong>{code_stats['ratio']}x</strong> Test-to-Code Ratio</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex flex-col gap-2 min-w-[220px] bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm">
-                    <div class="flex justify-between text-xs font-mono text-slate-600">
-                        <span>Phase Pass Rate</span>
-                        <span class="text-teal-700 font-bold">{stats['pass_rate']}%</span>
+
+                <!-- PROGRESS SUMMARY BOX -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4 shadow-inner">
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-600">Curriculum Completion</span>
+                        <span class="text-2xl font-black text-blue-600 font-mono">{curriculum_progress_pct}%</span>
                     </div>
-                    <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-                        <div class="bg-gradient-to-r from-teal-500 to-emerald-500 h-full rounded-full transition-all duration-500" style="width: {stats['pass_rate']}%"></div>
+                    <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
+                        <div class="bg-blue-600 h-full rounded-full transition-all duration-700" style="width: {curriculum_progress_pct}%"></div>
                     </div>
-                    <div class="flex justify-between text-xs font-mono text-slate-500 pt-1">
-                        <span class="font-semibold text-emerald-700">{stats['total_passed']} Passed</span>
-                        <span class="font-semibold text-amber-700">{stats['total_failed']} Pending</span>
+                    <div class="pt-2 border-t border-slate-200/60 flex justify-between text-xs text-slate-500">
+                        <span>Unit Tests Passing:</span>
+                        <span class="font-mono font-bold text-slate-800">{stats['total_passed']} of {stats['total_tests']} ({stats['pass_rate']}%)</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- VITALS & KEY METRICS GRID -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            
-            <!-- Card 1: Overall Tests -->
-            <div class="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 shadow-sm transition">
-                <div class="flex items-center justify-between text-slate-500 mb-3">
-                    <span class="text-xs font-bold uppercase tracking-wider">Total Tests</span>
-                    <i data-lucide="shield-check" class="w-5 h-5 text-emerald-600"></i>
-                </div>
-                <div class="flex items-baseline gap-2">
-                    <span class="text-3xl font-extrabold text-slate-900 font-mono">{stats['total_passed']}</span>
-                    <span class="text-sm text-slate-500 font-mono">/ {stats['total_tests']}</span>
-                </div>
-                <p class="text-xs text-emerald-700 mt-2 flex items-center gap-1 font-mono font-medium">
-                    <i data-lucide="check" class="w-3.5 h-3.5"></i> {stats['pass_rate']}% verified
-                </p>
-            </div>
-
-            <!-- Card 2: Tier 1 Foundations -->
-            <div class="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 shadow-sm transition">
-                <div class="flex items-center justify-between text-slate-500 mb-3">
-                    <span class="text-xs font-bold uppercase tracking-wider">Tier 1: Foundations</span>
-                    <i data-lucide="award" class="w-5 h-5 text-teal-600"></i>
-                </div>
-                <div class="flex items-baseline gap-2">
-                    <span class="text-3xl font-extrabold text-teal-600 font-mono">{t1_pct}%</span>
-                    <span class="text-xs text-slate-500 font-mono">({t1_passed}/{t1_total})</span>
-                </div>
-                <p class="text-xs text-slate-600 mt-2 flex items-center gap-1 font-medium">
-                    <span class="w-2 h-2 rounded-full bg-teal-500"></span> 10 of 10 Modules Complete
-                </p>
-            </div>
-
-            <!-- Card 3: Tier 2 Intermediate -->
-            <div class="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 shadow-sm transition">
-                <div class="flex items-center justify-between text-slate-500 mb-3">
-                    <span class="text-xs font-bold uppercase tracking-wider">Tier 2: Intermediate</span>
-                    <i data-lucide="git-merge" class="w-5 h-5 text-amber-600"></i>
-                </div>
-                <div class="flex items-baseline gap-2">
-                    <span class="text-3xl font-extrabold text-amber-600 font-mono">{t2_pct}%</span>
-                    <span class="text-xs text-slate-500 font-mono">({t2_passed}/{t2_total})</span>
-                </div>
-                <p class="text-xs text-amber-700 mt-2 flex items-center gap-1 font-medium">
-                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Active: {active_name}
-                </p>
-            </div>
-
-            <!-- Card 4: Code vs Test Ratio -->
-            <div class="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 shadow-sm transition">
-                <div class="flex items-center justify-between text-slate-500 mb-3">
-                    <span class="text-xs font-bold uppercase tracking-wider">Test-to-Code Ratio</span>
-                    <i data-lucide="code-2" class="w-5 h-5 text-indigo-600"></i>
-                </div>
-                <div class="flex items-baseline gap-2">
-                    <span class="text-3xl font-extrabold text-slate-900 font-mono">{code_stats['ratio']}x</span>
-                    <span class="text-xs text-slate-500 font-mono">({code_stats['test_lines']} test / {code_stats['src_lines']} src)</span>
-                </div>
-                <p class="text-xs text-indigo-600 mt-2 font-mono font-medium">
-                    Production test harness
-                </p>
-            </div>
-
-        </section>
-
-        <!-- ROADMAP TIERS & MODULE BREAKDOWN WITH DEBOUNCED SEARCH -->
-        <section class="space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <i data-lucide="layers" class="w-5 h-5 text-teal-600"></i>
-                    Component Verification Matrix
+        <!-- SEARCH BAR (APPLIES TO ACTIVE VIEW) -->
+        <section class="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+                <h3 id="viewTitle" class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <i data-lucide="map" class="w-5 h-5 text-blue-600"></i>
+                    Comprehensive Syllabus & Future Roadmap
                 </h3>
-                
-                <!-- Debounced Search Filter -->
-                <div class="relative w-full sm:w-72">
-                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-                    <input 
-                        type="text" 
-                        id="searchInput" 
-                        placeholder="Search components or tests..." 
-                        class="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-4 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition font-mono shadow-sm"
-                    />
-                </div>
+                <p id="viewSubtitle" class="text-xs text-slate-500">Explore past milestones, current in-flight modules, and future advanced topics.</p>
             </div>
 
-            <!-- MODULE CARDS GRID -->
-            <div id="moduleGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Debounced Search Input -->
+            <div class="relative w-full sm:w-80">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Search concepts, modules, or tests..." 
+                    class="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-4 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition font-mono shadow-sm"
+                />
+            </div>
+        </section>
+
+        <!-- TAB 1: CURRICULUM SYLLABUS VIEW (COURSERA STYLE) -->
+        <div id="tab-curriculum" class="tab-content space-y-6">
+            <div id="syllabusContainer" class="space-y-6">
                 <!-- Injected via JavaScript -->
             </div>
-        </section>
+        </div>
 
-        <!-- CONCEPT VAULT -->
-        <section class="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
-            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <i data-lucide="brain" class="w-5 h-5 text-teal-600"></i>
-                Core Algorithms & Mathematical Invariants Mastered
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
-                    <div class="font-bold text-teal-800 font-mono">Byte-Pair Encoding</div>
-                    <p class="text-slate-600">Greedy pair frequency counting, 256 base byte vocab, UTF-8 lossless decoding.</p>
+        <!-- TAB 2: LIVE TEST HARNESS VIEW -->
+        <div id="tab-tests" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="testModuleGrid">
+                <!-- Injected via JavaScript -->
+            </div>
+        </div>
+
+        <!-- TAB 3: CONCEPT KNOWLEDGE VAULT -->
+        <div id="tab-vault" class="tab-content hidden space-y-6">
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="brain" class="w-6 h-6 text-blue-600"></i>
+                        Core First-Principles Formulas & Architectural Invariants
+                    </h3>
+                    <p class="text-sm text-slate-600">Production mathematical formulas and algorithmic guarantees implemented in this repository.</p>
                 </div>
-                <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
-                    <div class="font-bold text-teal-800 font-mono">Token Bucket Limiter</div>
-                    <p class="text-slate-600">Drift-safe monotonic clock, continuous token refill math, burst capacity protection.</p>
-                </div>
-                <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
-                    <div class="font-bold text-teal-800 font-mono">Full Jitter Backoff</div>
-                    <p class="text-slate-600">min(max_delay, base * 2^attempt) * uniform(0, 1) to eliminate thundering herds.</p>
-                </div>
-                <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
-                    <div class="font-bold text-teal-800 font-mono">Cosine & Euclidean Math</div>
-                    <p class="text-slate-600">Exact L2 unit normalization, dot product speedup, cosine similarity [-1.0, 1.0].</p>
-                </div>
-                <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
-                    <div class="font-bold text-teal-800 font-mono">Fixed-Size Chunking</div>
-                    <p class="text-slate-600">Sliding character window with configurable overlap preserving semantic borders.</p>
-                </div>
-                <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
-                    <div class="font-bold text-teal-800 font-mono">In-Memory Vector DB</div>
-                    <p class="text-slate-600">Exact top-k nearest neighbor retrieval with dynamic dimensionality & thresholding.</p>
-                </div>
-                <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
-                    <div class="font-bold text-teal-800 font-mono">Okapi BM25 Sparse</div>
-                    <p class="text-slate-600">Term frequency saturation (k1), length normalization (b), and RSJ floor-smoothed IDF.</p>
-                </div>
-                <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
-                    <div class="font-bold text-teal-800 font-mono">Reciprocal Rank Fusion</div>
-                    <p class="text-slate-600">sum(1 / (60 + rank)) to unify disparate dense and sparse scores without distortion.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-blue-700 font-mono text-sm">Byte-Pair Encoding (BPE)</span>
+                            <span class="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-mono">Foundations</span>
+                        </div>
+                        <p class="text-slate-600">Base byte vocabulary $V_0 = \\{{0..255\\}}$. Iteratively greedily merges the highest frequency adjacent byte-pair into a new token ID $k = 256 + i$.</p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-blue-700 font-mono text-sm">Full Jitter Exponential Backoff</span>
+                            <span class="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-mono">Resilience</span>
+                        </div>
+                        <p class="text-slate-600">Formula: $T_{{wait}} = \\min(T_{{max}}, T_{{base}} \\cdot 2^{{attempt}}) \\times U(0, 1)$. Prevents clustered thundering herds on rate-limit recovery.</p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-blue-700 font-mono text-sm">Okapi BM25 Sparse RSJ IDF</span>
+                            <span class="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-mono">Information Retrieval</span>
+                        </div>
+                        <p class="text-slate-600">Formula: $\\text{{IDF}}(q_i) = \\ln\\left(1 + \\frac{{N - n(q_i) + 0.5}}{{n(q_i) + 0.5}}\\right)$. Floor-smoothed to 0 to prevent negative scoring on ultra-frequent terms.</p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-blue-700 font-mono text-sm">Reciprocal Rank Fusion (RRF)</span>
+                            <span class="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-mono">Hybrid Retrieval</span>
+                        </div>
+                        <p class="text-slate-600">Formula: $\\text{{RRF}}(d) = \\sum_{{m \\in M}} \\frac{{1}}{{k + r_m(d)}}$, with constant $k=60$. Invariant to arbitrary score scales between dense cosine and BM25.</p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-blue-700 font-mono text-sm">Cross-Encoder Re-Ranking</span>
+                            <span class="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-mono">Re-ranking</span>
+                        </div>
+                        <p class="text-slate-600">Combined score: $S = 0.50 \\times \\text{{Coverage}} + 0.30 \\times \\text{{NGramBigram}} + 0.20 \\times \\text{{ProximitySpan}}$. Eliminates dense false-positives.</p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-blue-700 font-mono text-sm">The RAG Triad (Upcoming)</span>
+                            <span class="text-xs px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-mono">Evaluation</span>
+                        </div>
+                        <p class="text-slate-600">Evaluates 3 axes: 1. Context Relevance (query vs retrieved text), 2. Groundedness (answer vs context), 3. Answer Relevance (answer vs query).</p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-blue-700 font-mono text-sm">ReAct Cycle Detection (Upcoming)</span>
+                            <span class="text-xs px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-mono">Agent Loop</span>
+                        </div>
+                        <p class="text-slate-600">Explicit state transition machine: $[\\text{{Thought}} \\to \\text{{Action}} \\to \\text{{Observation}}]^* \\to \\text{{FinalAnswer}}$. Traps repeated action hashes to halt cycles.</p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-blue-700 font-mono text-sm">LoRA Rank Decomposition (Upcoming)</span>
+                            <span class="text-xs px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-mono">Fine-Tuning</span>
+                        </div>
+                        <p class="text-slate-600">Weight update $W = W_0 + \\Delta W = W_0 + \\frac{{\\alpha}}{{r}} (B \\cdot A)$, where $A \\in \\mathbb{{R}}^{{r \\times d_{{in}}}}$ and $B \\in \\mathbb{{R}}^{{d_{{out}} \\times r}}$ with $r \\ll d$.</p>
+                    </div>
+
                 </div>
             </div>
-        </section>
+        </div>
 
         <!-- FOOTER -->
-        <footer class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 font-mono">
-            <span>Raven AI Developer Coach Harness</span>
-            <span>Run <code class="text-teal-700 bg-teal-50 px-1 py-0.5 rounded border border-teal-200 font-bold">python generate_dashboard.py</code> to refresh stats</span>
+        <footer class="pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 font-mono">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                <span>Raven AI Developer Coach Harness</span>
+            </div>
+            <span>Run <code class="text-blue-700 bg-blue-50 px-1 py-0.5 rounded border border-blue-200 font-bold">python generate_dashboard.py</code> to refresh live stats</span>
         </footer>
 
-    </div>
+    </main>
 
-    <!-- CLIENT SCRIPT: Modular Renderer & Debounced Search -->
+    <!-- CLIENT SCRIPT -->
     <script>
+        const syllabusData = {syllabus_json};
         const rawModules = {modules_json};
 
-        // Debounce utility (ensures debouncing on all search inputs)
+        // Tab Switching
+        function switchTab(tabId) {{
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+            if (tabId === 'curriculum') {{
+                document.getElementById('tab-curriculum-btn').classList.add('active');
+                document.getElementById('tab-curriculum').classList.remove('hidden');
+                document.getElementById('viewTitle').innerHTML = '<i data-lucide="map" class="w-5 h-5 text-blue-600"></i> Comprehensive Syllabus & Future Roadmap';
+                document.getElementById('viewSubtitle').innerText = 'Explore past milestones, current in-flight modules, and future advanced topics.';
+            }} else if (tabId === 'tests') {{
+                document.getElementById('tab-tests-btn').classList.add('active');
+                document.getElementById('tab-tests').classList.remove('hidden');
+                document.getElementById('viewTitle').innerHTML = '<i data-lucide="shield-check" class="w-5 h-5 text-blue-600"></i> Live Test Verification Matrix';
+                document.getElementById('viewSubtitle').innerText = 'Real-time pass/fail execution states across all unit test suites.';
+            }} else if (tabId === 'vault') {{
+                document.getElementById('tab-vault-btn').classList.add('active');
+                document.getElementById('tab-vault').classList.remove('hidden');
+                document.getElementById('viewTitle').innerHTML = '<i data-lucide="brain" class="w-5 h-5 text-blue-600"></i> Concept Knowledge Vault';
+                document.getElementById('viewSubtitle').innerText = 'Algorithmic guarantees, mathematical formulas, and system invariants.';
+            }}
+            lucide.createIcons();
+        }}
+
+        // Debounce utility (ensures debouncing on search input)
         function debounce(func, wait) {{
             let timeout;
             return function(...args) {{
@@ -451,8 +715,102 @@ def generate_html() -> None:
             }};
         }}
 
-        function renderModules(filterText = '') {{
-            const grid = document.getElementById('moduleGrid');
+        // Render Coursera-Style Syllabus
+        function renderSyllabus(query = '') {{
+            const container = document.getElementById('syllabusContainer');
+            container.innerHTML = '';
+            const q = query.toLowerCase().trim();
+
+            syllabusData.forEach(tier => {{
+                // Filter modules inside this tier
+                const filteredModules = tier.modules.filter(m => {{
+                    if (!q) return true;
+                    return m.title.toLowerCase().includes(q) ||
+                           m.summary.toLowerCase().includes(q) ||
+                           m.type.toLowerCase().includes(q) ||
+                           m.topics.some(t => t.toLowerCase().includes(q));
+                }});
+
+                if (filteredModules.length === 0) return;
+
+                const tierCard = document.createElement('div');
+                tierCard.className = 'bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm';
+
+                // Tier Header
+                const tierHeader = document.createElement('div');
+                tierHeader.className = 'p-6 bg-slate-50/80 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4';
+                tierHeader.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-blue-100 text-blue-800 border border-blue-200">${{tier.badge}}</span>
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">${{tier.difficulty}}</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-900">${{tier.title}}</h4>
+                        <p class="text-xs text-slate-600">${{tier.subtitle}}</p>
+                    </div>
+                    <div class="text-xs font-mono text-slate-500">
+                        ${{filteredModules.filter(m => m.status === 'completed').length}} / ${{tier.modules.length}} Modules Completed
+                    </div>
+                `;
+                tierCard.appendChild(tierHeader);
+
+                // Modules list in Coursera style
+                const modulesList = document.createElement('div');
+                modulesList.className = 'divide-y divide-slate-100';
+
+                filteredModules.forEach((mod, idx) => {{
+                    const modRow = document.createElement('div');
+                    modRow.className = 'p-5 sm:p-6 hover:bg-slate-50/60 transition flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4';
+
+                    let statusBadge = '';
+                    let statusIcon = '';
+
+                    if (mod.status === 'completed') {{
+                        statusBadge = '<span class="px-2.5 py-1 rounded-full text-xs font-mono font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> COMPLETED</span>';
+                        statusIcon = '<div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0"><i data-lucide="check" class="w-4 h-4"></i></div>';
+                    }} else if (mod.status === 'in_progress') {{
+                        statusBadge = '<span class="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-amber-50 text-amber-800 border border-amber-300 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> IN FLIGHT</span>';
+                        statusIcon = '<div class="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0"><i data-lucide="compass" class="w-4 h-4"></i></div>';
+                    }} else {{
+                        statusBadge = '<span class="px-2.5 py-1 rounded-full text-xs font-mono font-medium bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1"><i data-lucide="lock" class="w-3.5 h-3.5"></i> UPCOMING</span>';
+                        statusIcon = '<div class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0"><i data-lucide="lock" class="w-4 h-4"></i></div>';
+                    }}
+
+                    const topicsPills = mod.topics.map(t => `<span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px] font-mono border border-slate-200">${{t}}</span>`).join(' ');
+
+                    modRow.innerHTML = `
+                        <div class="flex items-start gap-4">
+                            ${{statusIcon}}
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-mono font-bold text-blue-700 uppercase">${{mod.type}}</span>
+                                    <span class="text-slate-300">•</span>
+                                    <h5 class="text-sm font-bold text-slate-900">${{mod.title}}</h5>
+                                </div>
+                                <p class="text-xs text-slate-600 max-w-2xl">${{mod.summary}}</p>
+                                <div class="flex flex-wrap gap-1.5 pt-1.5">
+                                    ${{topicsPills}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="shrink-0 self-end sm:self-center">
+                            ${{statusBadge}}
+                        </div>
+                    `;
+
+                    modulesList.appendChild(modRow);
+                }});
+
+                tierCard.appendChild(modulesList);
+                container.appendChild(tierCard);
+            }});
+
+            lucide.createIcons();
+        }}
+
+        // Render Test Matrix Grid
+        function renderTestModules(filterText = '') {{
+            const grid = document.getElementById('testModuleGrid');
             grid.innerHTML = '';
             const query = filterText.toLowerCase().trim();
 
@@ -481,7 +839,7 @@ def generate_html() -> None:
                         <div class="text-xs font-mono text-slate-500 mt-1 truncate" title="${{path}}">${{path}}</div>
                     </div>
                     <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-mono">
-                        <span class="text-slate-500">Tests:</span>
+                        <span class="text-slate-500">Test Suite:</span>
                         <span class="text-slate-900 font-bold">${{mod.passed}} passed ${{mod.failed > 0 ? `<span class="text-rose-600 font-semibold">/ ${{mod.failed}} failed</span>` : ''}}</span>
                     </div>
                 `;
@@ -495,13 +853,15 @@ def generate_html() -> None:
         // Setup Debounced Search Input
         const searchInput = document.getElementById('searchInput');
         const handleSearch = debounce((e) => {{
-            renderModules(e.target.value);
+            renderSyllabus(e.target.value);
+            renderTestModules(e.target.value);
         }}, 200);
 
         searchInput.addEventListener('input', handleSearch);
 
-        // Initial Render
-        renderModules();
+        // Initial Renders
+        renderSyllabus();
+        renderTestModules();
         lucide.createIcons();
     </script>
 </body>
@@ -509,7 +869,7 @@ def generate_html() -> None:
 """
     with open("dashboard.html", "w", encoding="utf-8") as f:
         f.write(html_content)
-    print("Successfully generated dashboard.html!")
+    print("Successfully generated Coursera-style dashboard.html!")
 
 
 if __name__ == "__main__":
