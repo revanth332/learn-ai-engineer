@@ -115,7 +115,7 @@ def get_curriculum_syllabus(live_modules: dict) -> list[dict]:
                 },
                 {
                     "title": "Query Transformation, Expansion & HyDE",
-                    "status": "in_progress",
+                    "status": "completed",
                     "type": "Query Engineering",
                     "summary": "Vocabulary mismatch resolution: domain synonym expansion, multi-query decomposition, and HyDE prompt synthesis.",
                     "topics": ["Vocabulary mismatch problem", "Conjunction query decomposition", "HyDE hypothetical passage synthesis", "Query set fusion & deduplication"],
@@ -123,19 +123,19 @@ def get_curriculum_syllabus(live_modules: dict) -> list[dict]:
                 },
                 {
                     "title": "Dynamic Tool Calling & Execution Engine",
-                    "status": "upcoming",
+                    "status": "completed",
                     "type": "Autonomous Agent",
                     "summary": "Dynamic tool registry, schema auto-generation, argument sandboxing, and automated error-correction loops.",
                     "topics": ["Tool registry & typing introspection", "OpenAI/Anthropic tool JSON schemas", "Sandboxed execution & exception capture", "Self-correcting feedback prompts"],
-                    "test_file": "Pending",
+                    "test_file": "tests/test_agent_tools.py",
                 },
                 {
                     "title": "Stateful Conversation & Memory Architecture",
-                    "status": "upcoming",
+                    "status": "in_progress",
                     "type": "Memory Systems",
                     "summary": "Production conversation memory: sliding token windows, entity memory extraction graphs, and recursive rolling summaries.",
                     "topics": ["Sliding token window buffer", "Entity relationship extraction", "Knowledge graph memory edges", "Recursive LLM rolling summarizer"],
-                    "test_file": "Pending",
+                    "test_file": "tests/test_memory.py",
                 },
                 {
                     "title": "LLM Evaluation Guardrails & The RAG Triad",
@@ -269,6 +269,16 @@ MODULE_METADATA = {
         "name": "Query Transformation & HyDE",
         "tier": 2,
         "desc": "Deterministic synonym expansion, multi-query decomposition, HyDE prompt templates, and query fusion.",
+    },
+    "tests/test_agent_tools.py": {
+        "name": "Dynamic Tool Calling & Execution Engine",
+        "tier": 2,
+        "desc": "Dynamic tool registry, schema auto-generation, argument sandboxing, and automated error-correction loops.",
+    },
+    "tests/test_memory.py": {
+        "name": "Stateful Conversation & Memory Architecture",
+        "tier": 2,
+        "desc": "Sliding token-window buffers, entity memory extraction graphs, and recursive rolling summarization.",
     },
 }
 
