@@ -48,32 +48,57 @@ Focus: Multi-stage pipelines, stateful interactions, and production-grade retrie
    - Entity memory extraction and graph representation.
    - Recursive rolling summarization.
 
-4. **LLM Evaluation & Guardrails (Evals)**
-   - Implementing the RAG Triad: Context Relevance, Groundedness, and Answer Relevance.
-   - Deterministic checks (regex, schema, semantic similarity) vs. LLM-as-a-judge patterns.
-   - Systematic evaluation harness and benchmark reporting.
+4. **LLM Evaluation, IR Metrics & Guardrails (Evals)**
+   - Deterministic Information Retrieval (IR) metrics: Recall@K, Precision@K, Mean Reciprocal Rank (MRR), and NDCG.
+   - Production RAG Triad: NLI Atomic Claim Faithfulness, Reverse-Query Embedding Answer Relevance, and Context Relevance.
+   - Deterministic Guardrails: PII regex detection/redaction and prompt-injection/jailbreak firewalls.
+   - Systematic evaluation harness with concurrent execution (`asyncio`) and benchmark reporting.
+
+5. **Tier 2 Capstone: End-to-End Stateful RAG & Tool Pipeline**
+   - Full integration wiring Query Transformation -> Hybrid Search (BM25 + Vector RRF) -> Cross-Encoder Reranking -> Composite Memory -> Dynamic Tool Registry -> Input/Output Guardrails with a live LLM.
 
 ---
 
-## Tier 3: Advanced Architectures (Hard)
-Focus: Autonomy, dynamic control flow, low-latency scaling, and fine-tuning.
+## Tier 3: Advanced Architectures & Production Systems (Hard)
+Focus: Async autonomy, observability, low-latency scaling, model internals, and fine-tuning.
 
-1. **Agentic Loops from First Principles**
-   - ReAct (Reasoning + Acting) pattern via explicit state machines.
-   - Dynamic replanning, cyclic execution, and deadlock detection.
-   - Multi-agent coordination: Supervisor-worker models and shared blackboard state.
+1. **Async Agentic Loops from First Principles (ReAct State Machine)**
+   - Explicit ReAct (Reasoning + Acting) state machine built on `asyncio`.
+   - Parallel tool execution (`asyncio.gather` with `Semaphore` rate control).
+   - Dynamic replanning, cyclic execution, and deterministic deadlock/loop breakers.
 
-2. **Semantic Caching & Latency Optimization**
-   - Vector similarity cache with calibrated distance thresholds.
-   - Cache invalidation strategies and hybrid exact-match/semantic routing.
-   - Batching and asynchronous queue management.
+2. **Multi-Agent Coordination & Shared Blackboard**
+   - Supervisor-worker routing models and handoff protocols.
+   - Shared blackboard state store with optimistic concurrency and conflict resolution.
 
-3. **Local Inference & Serving Mechanics**
-   - Serving via local backends (vLLM, Ollama).
-   - Prompt formatting specifications (ChatML, Llama-3 format).
-   - KV caching dynamics, context length scaling, and quantization trade-offs (GGUF, AWQ).
+3. **Observability, Tracing & Telemetry Engine**
+   - Hierarchical trace & span collectors (OpenTelemetry pattern for LLMs).
+   - Latency profiling: Time-To-First-Token (TTFT), Inter-Token Latency (ITL), P95/P99 latency distributions, and per-span cost attribution.
 
-4. **Fine-Tuning Pipelines**
-   - Data curation and synthetic dataset generation with rejection sampling.
-   - Instruction-tuning format preparation.
-   - LoRA/QLoRA configuration and evaluation benchmarks against base models.
+4. **Semantic Caching & High-Concurrency Optimization**
+   - Vector similarity cache with calibrated cosine distance thresholds.
+   - Cache invalidation strategies (TTL, LRU) and hybrid exact-match/semantic routing.
+   - Async request batching and queue management.
+
+5. **Model Internals, Sampling Math & Local Inference**
+   - Logit manipulation from scratch: Softmax, Temperature scaling, Top-K, and Top-P (Nucleus) sampling.
+   - KV caching memory mechanics, context length scaling, and quantization trade-offs (GGUF, AWQ).
+   - Local serving backends (vLLM, Ollama) and raw prompt formatting (ChatML, Llama-3).
+
+6. **Fine-Tuning & Synthetic Data Pipelines**
+   - Synthetic dataset generation with LLM rejection sampling and quality filtering.
+   - Instruction-tuning and preference (DPO) format preparation.
+   - LoRA/QLoRA rank/alpha architecture and pre/post-tuning benchmark evaluation.
+
+---
+
+## Tier 4: Full-Stack AI Engineering & Deployment (Production Capstone)
+Focus: Bridging Python AI backends with real-time Node/FastAPI streaming and React interfaces.
+
+1. **Production Streaming AI Backend (FastAPI / Node + SSE)**
+   - Multiplexed Server-Sent Events (SSE) streaming tokens, tool execution states, and citations.
+   - Client disconnect propagation (`AbortController`), request cancellation, and idempotency keys.
+
+2. **Full-Stack AI Agent Interface (React)**
+   - Real-time token streaming renderer with debounced search and modular card architecture.
+   - Live tool-call status inspection, retrieved source citation cards, and trace latency telemetry.
