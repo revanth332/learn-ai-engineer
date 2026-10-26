@@ -139,15 +139,15 @@ def get_curriculum_syllabus(live_modules: dict) -> list[dict]:
                 },
                 {
                     "title": "LLM Evaluation, IR Metrics & Guardrails (Evals)",
-                    "status": "in_progress",
+                    "status": "completed",
                     "type": "Evals & Governance",
                     "summary": "Production evaluation harness implementing IR metrics (Recall@K, MRR, NDCG), the NLI RAG Triad, and PII/Jailbreak guardrails.",
                     "topics": ["Recall@K, MRR & NDCG", "NLI Atomic Claim Faithfulness", "Reverse-Query Answer Relevance", "Deterministic PII & Injection Firewalls"],
-                    "test_file": "Pending",
+                    "test_file": "tests/test_evals.py",
                 },
                 {
                     "title": "Tier 2 Capstone: End-to-End Stateful RAG & Tool Pipeline",
-                    "status": "upcoming",
+                    "status": "in_progress",
                     "type": "System Integration",
                     "summary": "Unified pipeline wiring Query Transform, Hybrid RRF Search, Cross-Encoder Reranking, Composite Memory, Tools, and Guardrails with a live LLM.",
                     "topics": ["Multi-stage pipeline orchestration", "Live LLM tool + RAG loop", "Context window & memory coordination", "Pre/Post-flight guardrail enforcement"],
