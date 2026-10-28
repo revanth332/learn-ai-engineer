@@ -13,6 +13,7 @@ import re
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable
+from src.llm import call
 
 
 @dataclass
@@ -226,3 +227,14 @@ class CompositeMemory:
             messages.append(msg.to_dict())
 
         return messages
+
+if __name__ == "__main__":
+    memory = CompositeMemory()
+    query = "Hello! My name is Revathipathi!"
+    messages = memory.get_chat_history(query)
+    messages.append({
+        "role":"user",
+        "content":query
+    })
+    response = call(messages,[])
+    print(response.content)

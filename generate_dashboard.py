@@ -147,11 +147,11 @@ def get_curriculum_syllabus(live_modules: dict) -> list[dict]:
                 },
                 {
                     "title": "Tier 2 Capstone: End-to-End Stateful RAG & Tool Pipeline",
-                    "status": "in_progress",
+                    "status": "completed",
                     "type": "System Integration",
                     "summary": "Unified pipeline wiring Query Transform, Hybrid RRF Search, Cross-Encoder Reranking, Composite Memory, Tools, and Guardrails with a live LLM.",
                     "topics": ["Multi-stage pipeline orchestration", "Live LLM tool + RAG loop", "Context window & memory coordination", "Pre/Post-flight guardrail enforcement"],
-                    "test_file": "Pending",
+                    "test_file": "tests/test_pipeline.py",
                 },
             ],
         },
@@ -164,7 +164,7 @@ def get_curriculum_syllabus(live_modules: dict) -> list[dict]:
             "modules": [
                 {
                     "title": "Async Agentic Loops from First Principles (ReAct State Machine)",
-                    "status": "upcoming",
+                    "status": "in_progress",
                     "type": "Autonomous Systems",
                     "summary": "Asyncio-native ReAct (Reasoning + Acting) state machine with parallel tool execution, dynamic replanning, and loop breakers.",
                     "topics": ["Asyncio ReAct state machine", "Concurrent tool calls (gather + Semaphore)", "Cycle & infinite loop breaker", "Dynamic task replanning"],
