@@ -164,15 +164,15 @@ def get_curriculum_syllabus(live_modules: dict) -> list[dict]:
             "modules": [
                 {
                     "title": "Async Agentic Loops from First Principles (ReAct State Machine)",
-                    "status": "in_progress",
+                    "status": "completed",
                     "type": "Autonomous Systems",
                     "summary": "Asyncio-native ReAct (Reasoning + Acting) state machine with parallel tool execution, dynamic replanning, and loop breakers.",
                     "topics": ["Asyncio ReAct state machine", "Concurrent tool calls (gather + Semaphore)", "Cycle & infinite loop breaker", "Dynamic task replanning"],
-                    "test_file": "Pending",
+                    "test_file": "tests/test_react.py",
                 },
                 {
                     "title": "Multi-Agent Coordination & Shared Blackboard",
-                    "status": "upcoming",
+                    "status": "in_progress",
                     "type": "Distributed Agents",
                     "summary": "Supervisor-worker architecture with centralized state blackboard, task delegation, and consensus verification.",
                     "topics": ["Supervisor-worker topology", "Shared blackboard state store", "Conflict resolution", "Agent-to-agent handoffs"],

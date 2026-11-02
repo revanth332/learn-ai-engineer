@@ -159,7 +159,7 @@ class TestCompositeMemory:
         composite.add_message("user", "Hello! Can you help me write a function?", token_count=10)
         composite.add_message("assistant", "Certainly! What function do you need?", token_count=10)
 
-        payload = composite.get_chat_history(current_query="Help me with Python code")
+        payload = composite.get_chat_history(current_query="Help User with Python code")
 
         # System prompt should be at index 0
         assert payload[0]["role"] == "system"
