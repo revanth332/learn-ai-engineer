@@ -172,15 +172,15 @@ def get_curriculum_syllabus(live_modules: dict) -> list[dict]:
                 },
                 {
                     "title": "Multi-Agent Coordination & Shared Blackboard",
-                    "status": "in_progress",
+                    "status": "completed",
                     "type": "Distributed Agents",
                     "summary": "Supervisor-worker architecture with centralized state blackboard, task delegation, and consensus verification.",
                     "topics": ["Supervisor-worker topology", "Shared blackboard state store", "Conflict resolution", "Agent-to-agent handoffs"],
-                    "test_file": "Pending",
+                    "test_file": "tests/test_multi_agent.py",
                 },
                 {
                     "title": "Observability, Tracing & Telemetry Engine",
-                    "status": "upcoming",
+                    "status": "in_progress",
                     "type": "Production Ops",
                     "summary": "OpenTelemetry-style hierarchical trace spans tracking TTFT, token throughput, P95/P99 latency, and per-stage cost attribution.",
                     "topics": ["Hierarchical trace & span trees", "Time-To-First-Token (TTFT) profiling", "P95/P99 latency percentiles", "Per-span token & cost accounting"],
